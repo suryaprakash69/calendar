@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom calendar styles */
+.calendar-event {
+  @apply bg-white shadow-md rounded-md p-2 border-l-4 border-blue-500;
+}
+
+.calendar-event-count {
+  @apply bg-amber-100 text-amber-800 rounded-full w-6 h-6 flex items-center justify-center text-sm;
+}
+
+.calendar-time {
+  @apply text-sm text-blue-600;
+}
+
+.calendar-day-header {
+  @apply text-sm text-gray-600;
+}
+
+.calendar-cell {
+  @apply border-b relative;
+}
+
+.calendar-cell-content {
+  @apply absolute left-0 right-0 m-1;
+}
