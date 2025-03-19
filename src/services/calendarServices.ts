@@ -154,7 +154,6 @@ const getCalendar = async (): Promise<EventData[]> => {
     },
   ];
 
-  // No need to call .json() since getCalendarMockData is already an array
   return getCalendarMockData;
 };
 

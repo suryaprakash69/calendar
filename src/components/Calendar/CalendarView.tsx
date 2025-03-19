@@ -90,7 +90,7 @@ export const CalendarView = () => {
   };
 
   const renderEventCard = (events: EventData[], isSelected: boolean) => {
-    const event = events[0]; // Use the first event for display
+    const event = events[0]; 
     return (
       <Paper
         elevation={3}

@@ -1,4 +1,12 @@
-import { Dialog, DialogContent, Typography, Box, Button, Divider, IconButton } from "@mui/material";
+import {
+  Dialog,
+  DialogContent,
+  Typography,
+  Box,
+  Button,
+  Divider,
+  IconButton,
+} from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { EventData } from "../../types/calendar";
 import { format, parseISO } from "date-fns";
@@ -9,7 +17,7 @@ import google_meet from "../../assets/google-meet.webp";
 interface InterviewDialogProps {
   open: boolean;
   handleClose: () => void;
-  selectedEvent: EventData | null; 
+  selectedEvent: EventData | null;
 }
 
 const InterviewDialog: React.FC<InterviewDialogProps> = ({
@@ -18,7 +26,7 @@ const InterviewDialog: React.FC<InterviewDialogProps> = ({
   selectedEvent,
 }) => {
   if (!selectedEvent) {
-    return null; 
+    return null;
   }
 
   return (
@@ -52,7 +60,7 @@ const InterviewDialog: React.FC<InterviewDialogProps> = ({
                 flexDirection: "column",
                 alignItems: "start",
                 gap: 1,
-                width: "100%"
+                width: "100%",
               }}
             >
               <Typography variant="body1" gutterBottom>
@@ -68,7 +76,7 @@ const InterviewDialog: React.FC<InterviewDialogProps> = ({
               </Typography>
               <Typography variant="body1" gutterBottom>
                 <strong>Interview Date:</strong>
-                {format(parseISO(selectedEvent.start), " dd MMM yy")} 
+                {format(parseISO(selectedEvent.start), " dd MMM yy")}
               </Typography>
               <Typography variant="body1" gutterBottom>
                 <strong>Interview Time:</strong>
@@ -110,14 +118,18 @@ const InterviewDialog: React.FC<InterviewDialogProps> = ({
                 flexDirection: "column",
                 alignItems: "center",
                 width: "100%",
-                gap: "10px"
+                gap: "10px",
               }}
             >
-              <img src={google_meet} style={{ border: "1.5px solid rgb(170, 174, 179)", height: "150px", width: "150px" }} />
-              <Button
-                variant="contained"
-                sx={{ textTransform: "none" }}
-              >
+              <img
+                src={google_meet}
+                style={{
+                  border: "1.5px solid rgb(170, 174, 179)",
+                  height: "150px",
+                  width: "150px",
+                }}
+              />
+              <Button variant="contained" sx={{ textTransform: "none" }}>
                 Join
               </Button>
             </Box>
