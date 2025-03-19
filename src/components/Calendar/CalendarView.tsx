@@ -1,4 +1,4 @@
-import  { useState } from "react";
+import { useState } from "react";
 import {
   format,
   parseISO,
@@ -20,7 +20,6 @@ import {
   Box,
   IconButton,
   Popover,
-
 } from "@mui/material";
 import { CalendarHeader } from "./CalendarHeader";
 import useListCalendar from "../queryHook/useListCalendar";
@@ -29,28 +28,28 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import InterviewDialog from "./InterviewDialog";
 import { EventData } from "../../types/calendar";
 
-
-
 export const CalendarView = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<"day" | "week" | "month" | "year">("week");
   const { data = [] } = useListCalendar();
-  const [selectedEvent, setSelectedEvent] = useState<EventData | null>(null);
+  const [selectedEvents, setSelectedEvents] = useState<EventData[] | null>(
+    null
+  );
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [open, setOpen] = useState(false);
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
-  const handleEventClick = (event: EventData, target: HTMLElement) => {
+  const handleEventClick = (events: EventData[], target: HTMLElement) => {
     if (target instanceof HTMLElement) {
-      setSelectedEvent(event);
+      setSelectedEvents(events);
       setAnchorEl(target);
     }
   };
 
   const handleClosePopover = () => {
-    setSelectedEvent(null);
+    setSelectedEvents(null);
     setAnchorEl(null);
   };
 
@@ -74,7 +73,7 @@ export const CalendarView = () => {
     }
   };
 
-  const timeSlots = Array.from({ length: 24 }, (_, i) => i); 
+  const timeSlots = Array.from({ length: 24 }, (_, i) => i);
 
   const getEventsForTimeAndDay = (time: number, date: Date) => {
     if (!Array.isArray(data)) return [];
@@ -85,38 +84,66 @@ export const CalendarView = () => {
   };
 
   const getEventsForDay = (date: Date) => {
-    if (!Array.isArray(data)) return []; 
+    if (!Array.isArray(data)) return [];
     return data.filter((event) => isSameDay(parseISO(event.start), date));
   };
 
-  const renderEventCard = (event: EventData, isSelected: boolean) => (
-    <Paper
-      elevation={3}
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        backgroundColor: isSelected ? "rgb(135, 178, 248)" : "#ffffff",
-        padding: "0.5rem",
-        borderLeft: "10px solid #3b82f6",
-        width: "200px",
-        marginBottom: "0.25rem",
-        cursor: "pointer",
-      }}
-    >
-      <Box sx={{ flex: 1 }}>
-        <Typography variant="body1" fontWeight={500}>
-          {event.job_id?.jobRequest_Title || "No Title"}
-        </Typography>
-        <Typography variant="body2" color="textSecondary">
-          Interviewer: {event.user_det?.handled_by?.firstName || "Unknown"}
-        </Typography>
-        <Typography variant="body2" color="textSecondary">
-          Time: {format(parseISO(event.start), "hh:mm a")} -{" "}
-          {format(parseISO(event.end), "hh:mm a")}
-        </Typography>
-      </Box>
-    </Paper>
-  );
+  const renderEventCard = (events: EventData[], isSelected: boolean) => {
+    const event = events[0]; // Use the first event for display
+    return (
+      <Paper
+        elevation={3}
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          backgroundColor: isSelected ? "rgb(135, 178, 248)" : "#ffffff",
+          padding: "0.5rem",
+          borderLeft: "10px solid #3b82f6",
+          width: "200px",
+          marginBottom: "0.25rem",
+          cursor: "pointer",
+          position: "relative",
+        }}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleEventClick(events, e.currentTarget);
+        }}
+      >
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="body1" fontWeight={500}>
+            {event.job_id?.jobRequest_Title || "No Title"}
+          </Typography>
+          <Typography variant="body2" color="textSecondary">
+            Interviewer: {event.user_det?.handled_by?.firstName || "Unknown"}
+          </Typography>
+          <Typography variant="body2" color="textSecondary">
+            Time: {format(parseISO(event.start), "hh:mm a")} -{" "}
+            {format(parseISO(event.end), "hh:mm a")}
+          </Typography>
+        </Box>
+        {events.length > 1 && (
+          <Box
+            sx={{
+              position: "absolute",
+              top: "0.25rem",
+              right: "0.25rem",
+              backgroundColor: "rgb(202, 228, 4)",
+              color: "rgb(2, 2, 0)",
+              borderRadius: "50%",
+              width: "1.5rem",
+              height: "1.5rem",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "0.75rem",
+            }}
+          >
+            {events.length}
+          </Box>
+        )}
+      </Paper>
+    );
+  };
 
   const renderDayView = () => {
     return (
@@ -183,6 +210,15 @@ export const CalendarView = () => {
           >
             {timeSlots.map((hour) => {
               const events = getEventsForTimeAndDay(hour, currentDate);
+              const groupedEvents = events.reduce((acc, event) => {
+                const key = `${format(parseISO(event.start), "yyyy-MM-dd-HH")}`;
+                if (!acc[key]) {
+                  acc[key] = [];
+                }
+                acc[key].push(event);
+                return acc;
+              }, {} as Record<string, EventData[]>);
+
               return (
                 <Box
                   key={`${currentDate.toISOString()}-${hour}`}
@@ -192,11 +228,11 @@ export const CalendarView = () => {
                     position: "relative",
                   }}
                 >
-                  {events.map((event, index) => {
+                  {Object.values(groupedEvents).map((group, index) => {
                     const top = index * 70;
                     return (
                       <Box
-                        key={event.id}
+                        key={group[0].id}
                         sx={{
                           position: "absolute",
                           left: 0,
@@ -204,12 +240,12 @@ export const CalendarView = () => {
                           margin: "0.25rem",
                           top: `${top}px`,
                         }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEventClick(event, e.currentTarget);
-                        }}
                       >
-                        {renderEventCard(event, selectedEvent?.id === event.id)}
+                        {renderEventCard(
+                          group,
+                          selectedEvents?.some((e) => e.id === group[0].id) ??
+                            false
+                        )}
                       </Box>
                     );
                   })}
@@ -300,6 +336,18 @@ export const CalendarView = () => {
             >
               {timeSlots.map((hour) => {
                 const events = getEventsForTimeAndDay(hour, day);
+                const groupedEvents = events.reduce((acc, event) => {
+                  const key = `${format(
+                    parseISO(event.start),
+                    "yyyy-MM-dd-HH"
+                  )}`;
+                  if (!acc[key]) {
+                    acc[key] = [];
+                  }
+                  acc[key].push(event);
+                  return acc;
+                }, {} as Record<string, EventData[]>);
+
                 return (
                   <Box
                     key={`${day.toISOString()}-${hour}`}
@@ -309,11 +357,11 @@ export const CalendarView = () => {
                       position: "relative",
                     }}
                   >
-                    {events.map((event, index) => {
+                    {Object.values(groupedEvents).map((group, index) => {
                       const top = index * 70;
                       return (
                         <Box
-                          key={event.id}
+                          key={group[0].id}
                           sx={{
                             position: "absolute",
                             left: 0,
@@ -321,12 +369,12 @@ export const CalendarView = () => {
                             margin: "0.25rem",
                             top: `${top}px`,
                           }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEventClick(event, e.currentTarget);
-                          }}
                         >
-                          {renderEventCard(event, selectedEvent?.id === event.id)}
+                          {renderEventCard(
+                            group,
+                            selectedEvents?.some((e) => e.id === group[0].id) ??
+                              false
+                          )}
                         </Box>
                       );
                     })}
@@ -376,6 +424,15 @@ export const CalendarView = () => {
         <Grid container columns={7}>
           {days.map((day) => {
             const eventsForDay = getEventsForDay(day);
+            const groupedEvents = eventsForDay.reduce((acc, event) => {
+              const key = `${format(parseISO(event.start), "yyyy-MM-dd-HH")}`;
+              if (!acc[key]) {
+                acc[key] = [];
+              }
+              acc[key].push(event);
+              return acc;
+            }, {} as Record<string, EventData[]>);
+
             const isCurrentMonth = isSameMonth(day, currentDate);
 
             return (
@@ -406,15 +463,19 @@ export const CalendarView = () => {
                     gap: "0.25rem",
                   }}
                 >
-                  {eventsForDay.map((event) => (
+                  {Object.values(groupedEvents).map((group) => (
                     <Box
-                      key={event.id}
+                      key={group[0].id}
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleEventClick(event, e.currentTarget);
+                        handleEventClick(group, e.currentTarget);
                       }}
                     >
-                      {renderEventCard(event, selectedEvent?.id === event.id)}
+                      {renderEventCard(
+                        group,
+                        selectedEvents?.some((e) => e.id === group[0].id) ??
+                          false
+                      )}
                     </Box>
                   ))}
                 </Box>
@@ -454,53 +515,60 @@ export const CalendarView = () => {
         }}
         sx={{ marginLeft: "20px" }}
       >
-        {selectedEvent && (
-          <Paper
-            elevation={3}
-            sx={{
-              padding: "1rem",
-              backgroundColor: "#ffffff",
-              borderLeft: "10px solid #3b82f6",
-              width: "300px",
-              cursor: "pointer",
-            }}
-            onClick={handleOpen}
-          >
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-                justifyContent: "space-between",
-              }}
-            >
-              <Typography fontWeight={600}>
-                {selectedEvent.job_id?.jobRequest_Title || "No Title"}
-              </Typography>
-              <div>
-                <IconButton>
-                  <EditIcon sx={{ fontSize: "20px" }} />
-                </IconButton>
-                <IconButton>
-                  <DeleteIcon />
-                </IconButton>
-              </div>
-            </Box>
-            <Typography color="textSecondary" marginBottom={1}>
-              {selectedEvent.summary} | Interviewer:{" "}
-              {selectedEvent.user_det?.handled_by?.firstName || "Unknown"}
-            </Typography>
-            <Typography variant="body2" color="textSecondary">
-              Time: {format(parseISO(selectedEvent.start), "hh:mm a")} -{" "}
-              {format(parseISO(selectedEvent.end), "hh:mm a")}
-            </Typography>
-          </Paper>
+        {selectedEvents && (
+          <div>
+            {selectedEvents.map((event) => (
+              <Paper
+                key={event.id}
+                elevation={3}
+                sx={{
+                  padding: "1rem",
+                  backgroundColor: "#ffffff",
+                  borderLeft: "10px solid #3b82f6",
+                  width: "300px",
+                  cursor: "pointer",
+                }}
+                onClick={handleOpen}
+              >
+                <Box sx={{ marginBottom: "1rem" }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <Typography fontWeight={600}>
+                      {event.job_id?.jobRequest_Title || "No Title"}
+                    </Typography>
+                    <div>
+                      <IconButton>
+                        <EditIcon sx={{ fontSize: "20px" }} />
+                      </IconButton>
+                      <IconButton>
+                        <DeleteIcon />
+                      </IconButton>
+                    </div>
+                  </Box>
+                  <Typography color="textSecondary" marginBottom={1}>
+                    {event.summary} | Interviewer:{" "}
+                    {event.user_det?.handled_by?.firstName || "Unknown"}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    Time: {format(parseISO(event.start), "hh:mm a")} -{" "}
+                    {format(parseISO(event.end), "hh:mm a")}
+                  </Typography>
+                </Box>
+              </Paper>
+            ))}
+          </div>
         )}
       </Popover>
       <InterviewDialog
         open={open}
         handleClose={handleClose}
-        selectedEvent={selectedEvent}
+        selectedEvent={selectedEvents?.[0] || null}
       />
     </Box>
   );
