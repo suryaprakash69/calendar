@@ -32,9 +32,7 @@ export const CalendarView = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<"day" | "week" | "month" | "year">("week");
   const { data = [] } = useListCalendar();
-  const [selectedEvents, setSelectedEvents] = useState<EventData[] | null>(
-    null
-  );
+  const [selectedEvents, setSelectedEvents] = useState<EventData[] | null>(null);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [open, setOpen] = useState(false);
 
@@ -42,7 +40,10 @@ export const CalendarView = () => {
   const handleClose = () => setOpen(false);
 
   const handleEventClick = (events: EventData[], target: HTMLElement) => {
-    if (target instanceof HTMLElement) {
+    if (events.length === 1) {
+      setSelectedEvents(events);
+      handleOpen();
+    } else {
       setSelectedEvents(events);
       setAnchorEl(target);
     }
@@ -99,7 +100,7 @@ export const CalendarView = () => {
           backgroundColor: isSelected ? "rgb(135, 178, 248)" : "#ffffff",
           padding: "0.5rem",
           borderLeft: "10px solid #3b82f6",
-          width: "200px",
+          width: "198px",
           marginBottom: "0.25rem",
           cursor: "pointer",
           position: "relative",
@@ -116,7 +117,7 @@ export const CalendarView = () => {
           <Typography variant="body2" color="textSecondary">
             Interviewer: {event.user_det?.handled_by?.firstName || "Unknown"}
           </Typography>
-          <Typography variant="body2" color="textSecondary">
+          <Typography  color="textSecondary" sx={{fontSize:"12px"}}>
             Time: {format(parseISO(event.start), "hh:mm a")} -{" "}
             {format(parseISO(event.end), "hh:mm a")}
           </Typography>
@@ -487,6 +488,7 @@ export const CalendarView = () => {
     );
   };
 
+
   return (
     <Box sx={{ backgroundColor: "#ffffff", height: "100%" }}>
       <CalendarHeader
@@ -556,7 +558,8 @@ export const CalendarView = () => {
                     {event.user_det?.handled_by?.firstName || "Unknown"}
                   </Typography>
                   <Typography variant="body2" color="textSecondary">
-                    Time: {format(parseISO(event.start), "hh:mm a")} -{" "}
+                    Date: {format(parseISO(event.start), "dd MMM yy")} | Time:{" "}
+                    {format(parseISO(event.start), "hh:mm a")} -{" "}
                     {format(parseISO(event.end), "hh:mm a")}
                   </Typography>
                 </Box>

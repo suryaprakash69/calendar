@@ -68,10 +68,11 @@ const InterviewDialog: React.FC<InterviewDialogProps> = ({
               </Typography>
               <Typography variant="body1" gutterBottom>
                 <strong>Interview Date:</strong>
-                {format(parseISO(selectedEvent.start), "hh:mm a")}
+                {format(parseISO(selectedEvent.start), " dd MMM yy")} 
               </Typography>
               <Typography variant="body1" gutterBottom>
                 <strong>Interview Time:</strong>
+                {format(parseISO(selectedEvent.start), " hh")} -{" "}
                 {format(parseISO(selectedEvent.end), "hh:mm a")}
               </Typography>
               <Typography variant="body1" gutterBottom>

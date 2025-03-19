@@ -55,7 +55,7 @@ const getCalendar = async (): Promise<EventData[]> => {
     {
       id: 2,
       summary: "Test",
-      desc: "Test",
+      desc: "1nd Round",
       start: "2025-03-19T20:00:00+05:30",
       end: "2025-03-19T21:00:00+05:30",
       attendees: null,
